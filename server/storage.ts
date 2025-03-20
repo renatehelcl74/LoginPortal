@@ -51,46 +51,77 @@ export class MemStorage implements IStorage {
 // For production, use MySQL
 export class MySQLStorage implements IStorage {
   private db: ReturnType<typeof drizzle>;
+  private pool: mysql.Pool;
   sessionStore: session.Store;
 
   constructor() {
-    const pool = mysql.createPool({
-      host: process.env.MYSQL_HOST,
-      user: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD,
-      database: process.env.MYSQL_DATABASE,
-    });
+    if (!process.env.MYSQL_HOST || !process.env.MYSQL_USER || !process.env.MYSQL_PASSWORD || !process.env.MYSQL_DATABASE) {
+      throw new Error("Missing MySQL environment variables. Please check your .env file.");
+    }
 
-    this.db = drizzle(pool);
+    try {
+      this.pool = mysql.createPool({
+        host: process.env.MYSQL_HOST,
+        user: process.env.MYSQL_USER,
+        password: process.env.MYSQL_PASSWORD,
+        database: process.env.MYSQL_DATABASE,
+        waitForConnections: true,
+        connectionLimit: 10,
+        queueLimit: 0
+      });
 
-    // Setup MySQL session store
-    const options = {
-      host: process.env.MYSQL_HOST,
-      port: 3306,
-      user: process.env.MYSQL_USER,
-      password: process.env.MYSQL_PASSWORD,
-      database: process.env.MYSQL_DATABASE,
-    };
+      this.db = drizzle(this.pool);
 
-    const MySQLSessionStore = MySQLStore(session);
-    this.sessionStore = new MySQLSessionStore(options);
+      // Setup MySQL session store
+      const MySQLSessionStore = MySQLStore(session);
+      this.sessionStore = new MySQLSessionStore({
+        host: process.env.MYSQL_HOST,
+        port: 3306,
+        user: process.env.MYSQL_USER,
+        password: process.env.MYSQL_PASSWORD,
+        database: process.env.MYSQL_DATABASE,
+        createDatabaseTable: true,
+      });
+
+      console.log("MySQL storage initialized successfully");
+    } catch (error) {
+      console.error("Failed to initialize MySQL storage:", error);
+      throw error;
+    }
   }
 
   async getUser(id: number): Promise<User | undefined> {
-    const result = await this.db.select().from(users).where(eq(users.id, id));
-    return result[0];
+    try {
+      const result = await this.db.select().from(users).where(eq(users.id, id));
+      return result[0];
+    } catch (error) {
+      console.error(`Failed to get user ${id}:`, error);
+      throw error;
+    }
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const result = await this.db.select().from(users).where(eq(users.username, username));
-    return result[0];
+    try {
+      const result = await this.db.select().from(users).where(eq(users.username, username));
+      return result[0];
+    } catch (error) {
+      console.error(`Failed to get user by username ${username}:`, error);
+      throw error;
+    }
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const result = await this.db.insert(users).values(insertUser);
-    return { ...insertUser, id: Number(result[0].insertId) };
+    try {
+      const result = await this.db.insert(users).values(insertUser);
+      return { ...insertUser, id: Number(result[0].insertId) };
+    } catch (error) {
+      console.error("Failed to create user:", error);
+      throw error;
+    }
   }
 }
 
-// Export MemStorage for development
-export const storage = new MemStorage();
+// Export MySQLStorage for production
+export const storage = process.env.NODE_ENV === "production" 
+  ? new MySQLStorage()
+  : new MemStorage();
