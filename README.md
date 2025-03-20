@@ -62,6 +62,9 @@ CREATE DATABASE myapp_db;
 CREATE USER 'din_bruker'@'localhost' IDENTIFIED BY 'ditt_passord';
 GRANT ALL PRIVILEGES ON myapp_db.* TO 'din_bruker'@'localhost';
 FLUSH PRIVILEGES;
+
+# Kjør database_schema.sql fra docs-mappen
+mysql -u din_bruker -p myapp_db < docs/database_schema.sql
 ```
 
 4. Start utviklingsserver
@@ -70,6 +73,11 @@ npm run dev
 ```
 
 Applikasjonen vil nå kjøre på http://localhost:5000
+
+### Standard Admin-bruker
+En standard admin-bruker blir opprettet når du kjører database_schema.sql:
+- Brukernavn: admin
+- Passord: passord
 
 ## Prosjektstruktur
 
@@ -84,8 +92,10 @@ Applikasjonen vil nå kjøre på http://localhost:5000
 │   ├── auth.ts       # Autentiseringslogikk
 │   ├── routes.ts     # API-endepunkter
 │   └── storage.ts    # Datalagring
-└── shared/           # Delt kode mellom frontend og backend
-    └── schema.ts     # TypeScript-typer og Zod-skjemaer
+├── shared/           # Delt kode mellom frontend og backend
+│   └── schema.ts     # TypeScript-typer og Zod-skjemaer
+└── docs/             # Dokumentasjon og databaseskjemaer
+    └── database_schema.sql
 ```
 
 ## Feilsøking
