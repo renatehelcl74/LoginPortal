@@ -67,7 +67,12 @@ FLUSH PRIVILEGES;
 mysql -u din_bruker -p myapp_db < docs/database_schema.sql
 ```
 
-4. Start utviklingsserver
+4. Test databasetilkoblingen
+```bash
+npx tsx server/test-db.ts
+```
+
+5. Start utviklingsserver
 ```bash
 npm run dev
 ```

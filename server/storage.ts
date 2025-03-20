@@ -14,41 +14,6 @@ export interface IStorage {
   sessionStore: session.Store;
 }
 
-// For development/testing, we'll use in-memory storage
-export class MemStorage implements IStorage {
-  private users: Map<number, User>;
-  currentId: number;
-  sessionStore: session.Store;
-
-  constructor() {
-    this.users = new Map();
-    this.currentId = 1;
-    // Use memory store for sessions in development
-    const MemoryStore = memorystore(session);
-    this.sessionStore = new MemoryStore({
-      checkPeriod: 86400000 // prune expired entries every 24h
-    });
-  }
-
-  async getUser(id: number): Promise<User | undefined> {
-    return this.users.get(id);
-  }
-
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
-  }
-
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = this.currentId++;
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
-  }
-}
-
-// For production, use MySQL
 export class MySQLStorage implements IStorage {
   private db: ReturnType<typeof drizzle>;
   private pool: mysql.Pool;
@@ -121,7 +86,5 @@ export class MySQLStorage implements IStorage {
   }
 }
 
-// Export MySQLStorage for production
-export const storage = process.env.NODE_ENV === "production" 
-  ? new MySQLStorage()
-  : new MemStorage();
+// Export MySQL storage as default
+export const storage = new MySQLStorage();

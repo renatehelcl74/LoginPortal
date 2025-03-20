@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import mysql from "mysql2/promise";
 import { storage } from "./storage";
 import { drizzle } from "drizzle-orm/mysql2";
@@ -6,6 +7,13 @@ import { users } from "@shared/schema";
 async function testDatabaseConnection() {
   console.log("Testing database connection...");
   try {
+    // Log environment variables (without sensitive data)
+    console.log("Checking environment variables...");
+    console.log("MYSQL_HOST:", process.env.MYSQL_HOST ? "✓ Set" : "✕ Missing");
+    console.log("MYSQL_USER:", process.env.MYSQL_USER ? "✓ Set" : "✕ Missing");
+    console.log("MYSQL_DATABASE:", process.env.MYSQL_DATABASE ? "✓ Set" : "✕ Missing");
+    console.log("MYSQL_PASSWORD:", process.env.MYSQL_PASSWORD ? "✓ Set" : "✕ Missing");
+
     const connection = await mysql.createConnection({
       host: process.env.MYSQL_HOST,
       user: process.env.MYSQL_USER,
@@ -19,7 +27,7 @@ async function testDatabaseConnection() {
     const [rows] = await connection.execute("SHOW TABLES LIKE 'users'");
     if (Array.isArray(rows) && rows.length > 0) {
       console.log("✓ Users table exists");
-      
+
       // Test if we can query the users table
       const [users] = await connection.execute("SELECT * FROM users LIMIT 1");
       console.log("✓ Successfully queried users table");

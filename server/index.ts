@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
@@ -47,6 +48,12 @@ app.use((req, res, next) => {
 });
 
 (async () => {
+  // Check if required environment variables are set
+  if (!process.env.MYSQL_HOST || !process.env.MYSQL_USER || !process.env.MYSQL_PASSWORD || !process.env.MYSQL_DATABASE) {
+    console.error("Missing required environment variables. Please check your .env file.");
+    process.exit(1);
+  }
+
   // Set up authentication before registering routes
   setupAuth(app);
 
