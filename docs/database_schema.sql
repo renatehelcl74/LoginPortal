@@ -2,7 +2,22 @@
 CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL
+    password VARCHAR(255) NOT NULL,
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    email VARCHAR(255),
+    phone VARCHAR(50),
+    bio TEXT,
+    location VARCHAR(255),
+    avatar_url VARCHAR(255),
+    website VARCHAR(255),
+    linkedin VARCHAR(255),
+    instagram VARCHAR(255),
+    facebook VARCHAR(255),
+    soundcloud VARCHAR(255),
+    snapchat VARCHAR(255),
+    github VARCHAR(255),
+    theme VARCHAR(20) DEFAULT 'system'
 );
 
 -- Create admin user

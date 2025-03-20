@@ -1,4 +1,4 @@
-import { users, type User, type InsertUser } from "@shared/schema";
+import { users, type User, type InsertUser, type UpdateProfile } from "@shared/schema";
 import session from "express-session";
 import MySQLStore from "express-mysql-session";
 import { drizzle } from "drizzle-orm/mysql2";
@@ -11,6 +11,7 @@ export interface IStorage {
   getUser(id: number): Promise<User | undefined>;
   getUserByUsername(username: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
+  updateUser(id: number, user: UpdateProfile): Promise<User>;
   sessionStore: session.Store;
 }
 
@@ -81,6 +82,24 @@ export class MySQLStorage implements IStorage {
       return { ...insertUser, id: Number(result[0].insertId) };
     } catch (error) {
       console.error("Failed to create user:", error);
+      throw error;
+    }
+  }
+
+  async updateUser(id: number, updateData: UpdateProfile): Promise<User> {
+    try {
+      await this.db.update(users)
+        .set(updateData)
+        .where(eq(users.id, id));
+
+      const updatedUser = await this.getUser(id);
+      if (!updatedUser) {
+        throw new Error("User not found after update");
+      }
+
+      return updatedUser;
+    } catch (error) {
+      console.error(`Failed to update user ${id}:`, error);
       throw error;
     }
   }
